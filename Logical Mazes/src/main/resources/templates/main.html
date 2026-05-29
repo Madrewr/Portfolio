@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="sk" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Logical Mazes</title>
+    <link rel="stylesheet" href="/css/style.css?v=5" th:href="@{/css/style.css(v=5)}">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+
+<body>
+<div class="page">
+    <div class="container">
+        <div class="topbar home-hero">
+            <div>
+                <h1 class="title">Logical Mazes</h1>
+                <div class="subtitle">Logicka hra s levelmi, zberatelnymi bodmi a rebrickom skore</div>
+            </div>
+
+            <div class="topbar-actions" th:if="${loggedIn}">
+                <div class="account-pill">Prihlaseny: <b th:text="${player}">marek</b></div>
+                <form th:action="@{/logout}" method="post">
+                    <button class="btn ghost" type="submit">Odhlasit</button>
+                </form>
+            </div>
+
+            <div class="topbar-actions" th:unless="${loggedIn}">
+                <a class="btn ghost" th:href="@{/login}">Prihlasit</a>
+                <a class="btn" th:href="@{/register}">Registrovat</a>
+            </div>
+        </div>
+
+        <div class="msg" th:if="${message != null}" th:text="${message}">Sprava</div>
+
+        <div class="card home-card">
+            <div class="home-actions">
+                <a class="btn" th:href="@{/logicalmazes}">Spustit Logical Mazes</a>
+                <a class="btn ghost" th:href="@{/logicalmazes/best}">Najlepsie celkovo</a>
+            </div>
+
+            <div class="feature-grid">
+                <div class="feature">
+                    <div class="feature-kicker">Ciel</div>
+                    <h2>Pozbieraj vsetky C</h2>
+                    <p>Prejdi mapu, vyhni sa stenam a vyries level s co najmensim poctom tahov.</p>
+                </div>
+
+                <div class="feature">
+                    <div class="feature-kicker">Ucet</div>
+                    <h2>Login a registracia</h2>
+                    <p>Po prihlaseni sa tvoje meno automaticky pouzije pri score, komentaroch a hodnoteni.</p>
+                </div>
+
+                <div class="feature">
+                    <div class="feature-kicker">Skore</div>
+                    <h2>Rebricky a hodnotenie</h2>
+                    <p>Po vyrieseni levelu si uloz skore, pridaj komentar a ohodnot hru.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

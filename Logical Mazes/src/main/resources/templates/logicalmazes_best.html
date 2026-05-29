@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="sk" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Najlepsie celkovo</title>
+    <link rel="stylesheet" href="/css/style.css?v=5" th:href="@{/css/style.css(v=5)}">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+
+<body>
+<div class="page">
+    <div class="container">
+        <div class="topbar">
+            <div>
+                <h1 class="title">Najlepsie celkovo</h1>
+                <div class="subtitle">Rebricek pre vsetky levely Logical Mazes</div>
+            </div>
+            <div class="topbar-actions">
+                <a class="link" th:href="@{/}">Main</a>
+                <a class="link" th:href="@{/logicalmazes}">Spat do hry</a>
+            </div>
+        </div>
+
+        <div class="card">
+            <table class="table" th:if="${bestScores != null && !bestScores.isEmpty()}">
+                <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Hrac</th>
+                    <th>Level</th>
+                    <th>Tahy</th>
+                    <th>Datum</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="s, i : ${bestScores}">
+                    <td th:text="${i.index + 1}">1</td>
+                    <td th:text="${s.player}">player</td>
+                    <td th:text="${s.level}">1</td>
+                    <td th:text="${s.points}">0</td>
+                    <td th:text="${#dates.format(s.playedOn, 'dd.MM.yyyy HH:mm')}">-</td>
+                </tr>
+                </tbody>
+            </table>
+
+            <div class="muted" th:if="${bestScores == null || bestScores.isEmpty()}">
+                Zatial nic
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

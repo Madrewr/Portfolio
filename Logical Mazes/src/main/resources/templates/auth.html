@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="sk" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${mode == 'register' ? 'Registracia' : 'Prihlasenie'}">Prihlasenie</title>
+    <link rel="stylesheet" href="/css/style.css?v=5" th:href="@{/css/style.css(v=5)}">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+
+<body>
+<div class="page">
+    <div class="container auth-container">
+        <div class="topbar">
+            <div>
+                <h1 class="title" th:text="${mode == 'register' ? 'Registracia' : 'Prihlasenie'}">Prihlasenie</h1>
+                <div class="subtitle">Ucet sa ulozi do databazy a pouzije sa v hre Logical Mazes</div>
+            </div>
+        </div>
+
+        <div class="msg" th:if="${authMessage != null}" th:text="${authMessage}">Sprava</div>
+
+        <div class="card auth-card">
+            <form class="auth-form"
+                  th:attr="action=${mode == 'register' ? '/register' : '/login'}"
+                  method="post">
+                <label class="label" for="username">Meno hraca</label>
+                <input class="input auth-input"
+                       id="username"
+                       type="text"
+                       name="username"
+                       maxlength="30"
+                       autocomplete="username"
+                       placeholder="napr. marek"
+                       th:value="${lastUsername}">
+
+                <label class="label" for="password">Heslo</label>
+                <input class="input auth-input"
+                       id="password"
+                       type="password"
+                       name="password"
+                       autocomplete="current-password"
+                       placeholder="aspon 4 znaky">
+
+                <button class="btn auth-submit"
+                        type="submit"
+                        th:text="${mode == 'register' ? 'Registrovat' : 'Prihlasit'}">
+                    Prihlasit
+                </button>
+            </form>
+
+            <div class="auth-switch" th:if="${mode == 'register'}">
+                Uz mas ucet?
+                <a class="link" th:href="@{/login}">Prihlasit sa</a>
+            </div>
+
+            <div class="auth-switch" th:unless="${mode == 'register'}">
+                Nemas ucet?
+                <a class="link" th:href="@{/register}">Registrovat sa</a>
+            </div>
+
+            <div class="auth-switch">
+                <a class="link" th:href="@{/}">Spat na main</a>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

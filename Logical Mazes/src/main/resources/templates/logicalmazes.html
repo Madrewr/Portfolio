@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="sk" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Logical Mazes</title>
+    <link rel="stylesheet" href="/css/style.css?v=5" th:href="@{/css/style.css(v=5)}">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+
+<body>
+<div class="page">
+    <div class="container">
+        <div class="topbar">
+            <div>
+                <h1 class="title">Logical Mazes</h1>
+                <div class="subtitle">
+                    Level: <b th:text="${level}">1</b>
+                    <span class="dot">&bull;</span>
+                    Tahy: <b th:text="${moves}">0</b>
+                    <span class="dot">&bull;</span>
+                    Zostava C: <b th:text="${remaining}">0</b>
+                </div>
+            </div>
+
+            <div class="topbar-actions">
+                <a class="link" th:href="@{/}">Main</a>
+                <a class="link" th:href="@{/logicalmazes/best}">Najlepsie celkovo</a>
+            </div>
+        </div>
+
+        <div class="msg" th:if="${message != null && !#strings.isEmpty(message)}" th:text="${message}">
+            Sprava...
+        </div>
+
+        <div class="card">
+            <div class="row setup-row">
+                <div class="account-box" th:if="${loggedIn}">
+                    <span class="label">Hrac:</span>
+                    <b th:text="${player}">marek</b>
+                    <form th:action="@{/logout}" method="post">
+                        <button class="btn ghost" type="submit">Odhlasit</button>
+                    </form>
+                </div>
+
+                <div class="account-box" th:unless="${loggedIn}">
+                    <span class="label">Pre skore, komentare a rating sa prihlas.</span>
+                    <a class="btn ghost" th:href="@{/login}">Prihlasit</a>
+                    <a class="btn" th:href="@{/register}">Registrovat</a>
+                </div>
+
+                <form class="inline level-form" th:action="@{/logicalmazes}" method="get">
+                    <label class="label">Vybrat level:</label>
+                    <select class="select level-select" name="level">
+                        <option th:each="lvl : ${#numbers.sequence(1, maxLevel)}"
+                                th:value="${lvl}"
+                                th:text="${lvl}"
+                                th:selected="${lvl == level}">1</option>
+                    </select>
+                    <button class="btn ghost" type="submit">Ist</button>
+                </form>
+
+                <div class="spacer"></div>
+
+                <button class="btn ghost" id="helpBtn" type="button">Pomoc</button>
+
+                <form th:action="@{/logicalmazes/restart}" method="post">
+                    <button class="btn danger" type="submit">Restart</button>
+                </form>
+            </div>
+
+            <div class="game">
+                <div class="board-wrap">
+                    <div class="board-title">Mapa</div>
+
+                    <div class="maze" id="maze" tabindex="0" aria-label="Logical Mazes board">
+                        <div class="maze-row" th:each="row : ${board}">
+                            <span class="cell"
+                                  th:each="cell : ${row}"
+                                  th:classappend="${#strings.toLowerCase(cell.name())}"
+                                  th:text="${cell.name() == 'WALL' ? '' : (cell.name() == 'PLAYER' ? 'P' : (cell.name() == 'COLLECTIBLE' ? 'C' : ''))}">
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="hint">
+                        Ovladanie: <b>W A S D</b> na klavesnici alebo tlacidla.
+                        Score, komentar a rating sa ukladaju pod prihlasenym uctom.
+                    </div>
+                </div>
+
+                <div class="side">
+                    <div class="side-card">
+                        <div class="side-title">Ovladanie</div>
+
+                        <form id="moveForm" th:action="@{/logicalmazes/move}" method="post" class="hidden">
+                            <input type="hidden" name="cmd" id="cmdInput">
+                        </form>
+
+                        <form id="replayStepForm" th:action="@{/logicalmazes/replay/step}" method="post" class="hidden"></form>
+
+                        <div class="keys">
+                            <div></div>
+                            <button class="key" type="button" data-cmd="w">w</button>
+                            <div></div>
+
+                            <button class="key" type="button" data-cmd="a">a</button>
+                            <button class="key" type="button" data-cmd="s">s</button>
+                            <button class="key" type="button" data-cmd="d">d</button>
+                        </div>
+
+                        <div class="side-actions">
+                            <form th:action="@{/logicalmazes/score}" method="post">
+                                <button class="btn good" type="submit" th:disabled="${!solved || !loggedIn}">Ulozit skore</button>
+                            </form>
+
+                            <form th:action="@{/logicalmazes/replay}" method="post">
+                                <button class="btn ghost" type="submit" th:disabled="${!replayAvailable || replayMode}">Replay</button>
+                            </form>
+
+                            <form th:action="@{/logicalmazes/replay/stop}" method="post" th:if="${replayMode}">
+                                <button class="btn danger" type="submit">Stop</button>
+                            </form>
+                        </div>
+
+                        <div class="mini" th:if="${replayMode}">
+                            Replay: <b th:text="${replayStep}">0</b> / <b th:text="${replayTotal}">0</b>
+                        </div>
+
+                        <div class="mini" th:if="${solved && loggedIn}">
+                            Level je vyrieseny. Uloz skore.
+                        </div>
+
+                        <div class="mini" th:if="${!loggedIn}">
+                            Pre ulozenie skore sa prihlas.
+                        </div>
+                    </div>
+
+                    <div class="side-card">
+                        <div class="side-title">Hodnotenie</div>
+
+                        <div class="rating-line">
+                            Priemer: <b th:text="${avgRating}">0</b>/5
+                            <span class="dot">&bull;</span>
+                            Tvoje: <b th:text="${myRating}">0</b>/5
+                        </div>
+
+                        <form class="inline" th:action="@{/logicalmazes/rating}" method="post">
+                            <select class="select" name="value" th:disabled="${!loggedIn}">
+                                <option th:selected="${myRating == 1}" value="1">1</option>
+                                <option th:selected="${myRating == 2}" value="2">2</option>
+                                <option th:selected="${myRating == 3}" value="3">3</option>
+                                <option th:selected="${myRating == 4}" value="4">4</option>
+                                <option th:selected="${myRating == 5}" value="5">5</option>
+                            </select>
+                            <button class="btn" type="submit" th:disabled="${!loggedIn}">Ulozit</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2 class="section-title">TOP pre level</h2>
+            <table class="table" th:if="${topScores != null && !topScores.isEmpty()}">
+                <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Hrac</th>
+                    <th>Tahy</th>
+                    <th>Datum</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="s, i : ${topScores}">
+                    <td th:text="${i.index + 1}">1</td>
+                    <td th:text="${s.player}">player</td>
+                    <td th:text="${s.points}">0</td>
+                    <td th:text="${#dates.format(s.playedOn, 'dd.MM.yyyy HH:mm')}">-</td>
+                </tr>
+                </tbody>
+            </table>
+
+            <div class="muted" th:if="${topScores == null || topScores.isEmpty()}">Zatial nic</div>
+        </div>
+
+        <div class="card">
+            <h2 class="section-title">Komentare</h2>
+
+            <form class="row" th:action="@{/logicalmazes/comment}" method="post">
+                <input class="input grow"
+                       type="text"
+                       name="text"
+                       placeholder="Napis komentar"
+                       th:disabled="${!loggedIn}">
+                <button class="btn" type="submit" th:disabled="${!loggedIn}">Pridat</button>
+            </form>
+
+            <div class="mini" th:if="${!loggedIn}">Komentar mozes pridat po prihlaseni.</div>
+
+            <div class="list" th:if="${comments != null && !comments.isEmpty()}">
+                <div class="list-item" th:each="c : ${comments}">
+                    <div class="list-top">
+                        <b th:text="${c.player}">player</b>
+                        <span class="muted" th:text="${#dates.format(c.commentedOn, 'dd.MM.yyyy HH:mm')}">-</span>
+                    </div>
+                    <div class="list-text" th:text="${c.comment}">text</div>
+                </div>
+            </div>
+
+            <div class="muted" th:if="${comments == null || comments.isEmpty()}">Zatial ziadne komentare</div>
+        </div>
+    </div>
+</div>
+
+<div class="modal hidden" id="helpModal">
+    <div class="modal-card">
+        <div class="modal-title">Pomoc</div>
+        <div class="modal-text">
+            <ul>
+                <li>Hyb sa pomocou klaves: <b>W A S D</b></li>
+                <li>Restart: tlacidlo <b>Restart</b></li>
+                <li>Skore sa da ulozit az ked je level vyrieseny</li>
+                <li>Score, komentar a rating sa ulozia pod prihlasenym uctom</li>
+            </ul>
+        </div>
+        <div class="modal-actions">
+            <button class="btn" id="closeHelp" type="button">OK</button>
+        </div>
+    </div>
+</div>
+
+<script th:inline="javascript">
+    (function () {
+        const moveForm = document.getElementById('moveForm');
+        const cmdInput = document.getElementById('cmdInput');
+        const replayStepForm = document.getElementById('replayStepForm');
+        const replayMode = /*[[${replayMode}]]*/ false;
+
+        function sendCmd(c) {
+            cmdInput.value = c;
+            moveForm.submit();
+        }
+
+        document.querySelectorAll('[data-cmd]').forEach(btn => {
+            btn.addEventListener('click', () => sendCmd(btn.dataset.cmd));
+        });
+
+        document.addEventListener('keydown', (e) => {
+            const tag = (e.target && e.target.tagName) ? e.target.tagName.toLowerCase() : '';
+            if (tag === 'input' || tag === 'textarea' || tag === 'select') return;
+
+            const k = (e.key || '').toLowerCase();
+            if (k === 'w' || k === 'a' || k === 's' || k === 'd') {
+                e.preventDefault();
+                sendCmd(k);
+            }
+        });
+
+        const helpBtn = document.getElementById('helpBtn');
+        const helpModal = document.getElementById('helpModal');
+        const closeHelp = document.getElementById('closeHelp');
+
+        function openHelp() {
+            helpModal.classList.remove('hidden');
+        }
+
+        function closeHelpModal() {
+            helpModal.classList.add('hidden');
+        }
+
+        helpBtn.addEventListener('click', openHelp);
+        closeHelp.addEventListener('click', closeHelpModal);
+
+        helpModal.addEventListener('click', (e) => {
+            if (e.target === helpModal) closeHelpModal();
+        });
+
+        if (replayMode && replayStepForm) {
+            setTimeout(() => replayStepForm.submit(), 650);
+        }
+    })();
+</script>
+</body>
+</html>

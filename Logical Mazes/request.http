@@ -1,0 +1,62 @@
+### WEB MAIN PAGE
+GET http://localhost:8080/
+
+### WEB GAME PAGE - LEVEL 1
+GET http://localhost:8080/logicalmazes?level=1
+
+### WEB GAME PAGE - LEVEL OUT OF RANGE, SERVER MA OREZAT NA MAX LEVEL
+GET http://localhost:8080/logicalmazes?level=15
+
+### WEB BEST OVERALL PAGE
+GET http://localhost:8080/logicalmazes/best
+
+### STATIC CSS
+GET http://localhost:8080/css/style.css?v=4
+
+### SCORE POST
+POST http://localhost:8080/api/score
+Content-Type: application/json
+
+{
+  "player": "marek",
+  "game": "logicalmazes_level_1",
+  "points": 12,
+  "playedOn": "2026-05-01T17:30:00.000Z"
+}
+
+### SCORE GET TOP PRE LEVEL
+GET http://localhost:8080/api/score/logicalmazes_level_1
+
+### SCORE GET BEST OVERALL
+GET http://localhost:8080/api/score/best/logicalmazes
+
+### COMMENT POST
+POST http://localhost:8080/api/comment
+Content-Type: application/json
+
+{
+  "player": "marek",
+  "game": "logicalmazes_level_1",
+  "comment": "dobry level",
+  "commentedOn": "2026-05-01T17:31:00.000Z"
+}
+
+### COMMENT GET
+GET http://localhost:8080/api/comment/logicalmazes_level_1
+
+### RATING POST
+POST http://localhost:8080/api/rating
+Content-Type: application/json
+
+{
+  "player": "marek",
+  "game": "logicalmazes_level_1",
+  "rating": 5,
+  "ratedOn": "2026-05-01T17:32:00.000Z"
+}
+
+### RATING AVG
+GET http://localhost:8080/api/rating/logicalmazes_level_1
+
+### RATING MY
+GET http://localhost:8080/api/rating/logicalmazes_level_1/marek
